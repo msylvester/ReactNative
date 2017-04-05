@@ -1,0 +1,13 @@
+# package directories
+node_modules
+jspm_packages
+question
+
+# Serverless directories
+.serverlesssendgrid.env
+
+#files
+t.js
+sendgrid.envecho
+sendgrid.env
+config.js

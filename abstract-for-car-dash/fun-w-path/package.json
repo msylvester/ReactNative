@@ -1,0 +1,12 @@
+{
+  "name": "fun-w-path",
+  "version": "1.0.0",
+  "description": "This is a serverelss project for multiple path parameters",
+  "author": "mike ess",
+  "dependencies": {
+    "moment": "2.10.3",
+    "node-uuid": "1.4.3",
+    "aws-sdk":"2.36.0"
+
+  }
+}

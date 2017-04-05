@@ -1,0 +1,17 @@
+{
+  "name": "abscardash",
+  "version": "1.0.0",
+  "description": "this is awesome",
+  "author": "mike sylvester",
+  "license": "ISC",
+  "dependencies": {
+    "aws-sdk": "^2.33.0",
+    "bluebird": "^3.4.6",
+    "jsonwebtoken": "^7.1.9",
+    "promisify": "0.0.3",
+    "rapidapi-connect": "0.0.4",
+    "request": "^2.79.0",
+    "sendgrid": "^5.0.0",
+    "uuid": "^2.0.3"
+  }
+}

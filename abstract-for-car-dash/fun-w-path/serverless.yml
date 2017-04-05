@@ -1,0 +1,219 @@
+# Welcome to Serverless!
+#
+# This file is the main config file for your service.
+# It's very minimal at this point and uses default values.
+# You can always add more config options for more control.
+# We've included some commented out config examples here.
+# Just uncomment any of them to get that config option.
+#
+# For full config options, check the docs:
+#    docs.serverless.com
+#
+# Happy Coding!
+
+service: fun-w-path # NOTE: update this with your service name
+
+# You can pin your service to only deploy with a specific Serverless version
+# Check out our docs for more details
+frameworkVersion: ">=1.2.0 <2.0.0"
+
+provider:
+  name: aws
+  runtime: nodejs6.10
+  environment:
+    USERS_DYNAMODB_TABLE: users-${self:service}-${opt:stage, self:provider.stage}
+    TASKS_DYNAMODB_TABLE: tasks-${self:service}-${opt:stage, self:provider.stage}
+  iamRoleStatements:
+  - Effect: Allow
+    Action:
+    - dynamodb:Scan
+    - dynamodb:PutItem
+    - dynamodb:GetItem
+    - dynamodb:DeleteItem
+    - dynamodb:Query
+    - dynamodb:UpdateItem
+    Resource:
+    - "Fn::Join": ["", ["arn:aws:dynamodb:", {"Ref": "AWS::Region"}, ":", {"Ref": "AWS::AccountId"}, ":table/${self:provider.environment.USERS_DYNAMODB_TABLE}*"]]
+    - "Fn::Join": ["", ["arn:aws:dynamodb:", {"Ref": "AWS::Region"}, ":", {"Ref": "AWS::AccountId"}, ":table/${self:provider.environment.TASKS_DYNAMODB_TABLE}*"]]
+
+
+functions:
+  getUsers:
+    handler: handler.getUsers
+    events:
+    - http:
+        path: user
+        method: get
+        authorizer: arn:aws:lambda:us-east-1:985983045442:function:abstract-cardash-production-auth
+  postUser:
+    handler: handler.postUser
+    events:
+    - http:
+        path: user
+        method: post
+  getUser:
+    handler: handler.getUser
+    events:
+    - http:
+        path: user/{userId}
+        method: get
+  deleteUser:
+    handler: handler.deleteUser
+    events:
+    - http:
+        path: user/{userId}
+        method: delete
+  getTasks:
+    handler: handler.getTasks
+    events:
+    - http:
+        path: user/{userId}/task
+        method: get
+  postTask:
+    handler: handler.postTask
+    events:
+    - http:
+        path: user/{userId}/task
+        method: post
+  putTask:
+    handler: handler.putTask
+    events:
+    - http:
+        path: user/{userId}/task/{taskId}
+        method: put
+  deleteTask:
+    handler: handler.deleteTask
+    events:
+    - http:
+        path: user/{userId}/task/{taskId}
+        method: delete
+  getTasksByCategory:
+    handler: handler.getTasksByCategory
+    events:
+    - http:
+        path: category/{category}/task
+        method: get
+
+resources:
+  Resources:
+    UserTable:
+      Type: "AWS::DynamoDB::Table"
+      Properties:
+        AttributeDefinitions:
+        - AttributeName: "uid"
+          AttributeType: "S"
+        KeySchema:
+        - AttributeName: "uid"
+          KeyType: "HASH"
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        TableName: ${self:provider.environment.USERS_DYNAMODB_TABLE}
+    TaskTable:
+      Type: "AWS::DynamoDB::Table"
+      Properties:
+        AttributeDefinitions:
+        - AttributeName: "uid"
+          AttributeType: "S"
+        - AttributeName: "tid"
+          AttributeType: "N"
+        - AttributeName: "category"
+          AttributeType: "S"
+        KeySchema:
+        - AttributeName: "uid"
+          KeyType: "HASH"
+        - AttributeName: "tid"
+          KeyType: "RANGE"
+        GlobalSecondaryIndexes:
+        - IndexName: "category-index"
+          KeySchema:
+          - AttributeName: "category"
+            KeyType: "HASH"
+          - AttributeName: "tid"
+            KeyType: "RANGE"
+          Projection:
+            ProjectionType: "ALL"
+          ProvisionedThroughput:
+            ReadCapacityUnits: 1
+            WriteCapacityUnits: 1
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        TableName: ${self:provider.environment.TASKS_DYNAMODB_TABLE}
+
+# you can overwrite defaults here
+#  stage: dev
+#  region: us-east-1
+
+# you can add statements to the Lambda function's IAM Role here
+#  iamRoleStatements:
+#    - Effect: "Allow"
+#      Action:
+#        - "s3:ListBucket"
+#      Resource: { "Fn::Join" : ["", ["arn:aws:s3:::", { "Ref" : "ServerlessDeploymentBucket" } ] ]  }
+#    - Effect: "Allow"
+#      Action:
+#        - "s3:PutObject"
+#      Resource:
+#        Fn::Join:
+#          - ""
+#          - - "arn:aws:s3:::"
+#            - "Ref" : "ServerlessDeploymentBucket"
+#            - "/*"
+
+# you can define service wide environment variables here
+#  environment:
+#    variable1: value1
+
+# you can add packaging information here
+#package:
+#  include:
+#    - include-me.js
+#    - include-me-dir/**
+#  exclude:
+#    - exclude-me.js
+#    - exclude-me-dir/**
+#
+# functions:
+#   hello:
+#     handler: handler.hello
+
+#    The following are a few example events you can configure
+#    NOTE: Please make sure to change your handler code to work with those events
+#    Check the event documentation for details
+#    events:
+#      - http:
+#          path: users/create
+#          method: get
+#      - s3: ${env:BUCKET}
+#      - schedule: rate(10 minutes)
+#      - sns: greeter-topic
+#      - stream: arn:aws:dynamodb:region:XXXXXX:table/foo/stream/1970-01-01T00:00:00.000
+#      - alexaSkill
+#      - iot:
+#          sql: "SELECT * FROM 'some_topic'"
+#      - cloudwatchEvent:
+#          event:
+#            source:
+#              - "aws.ec2"
+#            detail-type:
+#              - "EC2 Instance State-change Notification"
+#            detail:
+#              state:
+#                - pending
+
+#    Define function environment variables here
+#    environment:
+#      variable2: value2
+
+# you can add CloudFormation resource templates here
+#resources:
+#  Resources:
+#    NewResource:
+#      Type: AWS::S3::Bucket
+#      Properties:
+#        BucketName: my-new-bucket
+#  Outputs:
+#     NewOutput:
+#       Description: "Description for the output"
+#       Value: "Some output value"
